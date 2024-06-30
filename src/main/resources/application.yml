@@ -1,0 +1,8 @@
+spring:
+  data:
+    mongodb:
+      database: cloud_storage
+      uri: mongodb://localhost:27017/cloud_storage
+
+jwt:
+  secret: key2024

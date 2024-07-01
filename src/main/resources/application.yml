@@ -5,4 +5,4 @@ spring:
       uri: mongodb://localhost:27017/cloud_storage
 
 jwt:
-  secret: key2024
+  secret: VGhpcyBpcyBhIHZlcnkgbG9uZyBhbmQgc2VjdXJlIHNlY3JldCBrZXk=

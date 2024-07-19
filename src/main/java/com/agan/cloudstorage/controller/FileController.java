@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cloud")
 @AllArgsConstructor
 public class FileController {
 

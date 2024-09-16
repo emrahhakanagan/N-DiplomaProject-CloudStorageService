@@ -6,6 +6,8 @@ import com.agan.cloudstorage.service.MyUserDetailsService;
 import com.agan.cloudstorage.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/")
 public class AuthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthenticationManager authenticationManager;
     private final MyUserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
@@ -34,12 +37,15 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(authenticationRequest.getLogin(),
                             authenticationRequest.getPassword())
             );
+            logger.info("Authentication successful for user: {}", authenticationRequest.getLogin());
         } catch (BadCredentialsException e) {
+            logger.error("Authentication failed for user: {}", authenticationRequest.getLogin());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getLogin());
         final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+        logger.info("JWT created for user: {}", authenticationRequest.getLogin());
 
         return ResponseEntity.ok(new AuthenticationResponse(jwt));
     }

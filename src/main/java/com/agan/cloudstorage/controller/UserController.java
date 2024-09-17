@@ -1,6 +1,7 @@
 package com.agan.cloudstorage.controller;
 
 import com.agan.cloudstorage.model.User;
+import com.agan.cloudstorage.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -7,6 +7,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -28,7 +30,12 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            user.setRoles(Collections.singletonList("USER"));
+            user.setRoles(Collections.singletonList("ROLE_USER"));
+        } else {
+            List<String> rolesWithPrefix = user.getRoles().stream()
+                    .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                    .collect(Collectors.toList());
+            user.setRoles(rolesWithPrefix);
         }
 
         userRepository.save(user);

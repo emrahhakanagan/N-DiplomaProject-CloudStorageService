@@ -60,7 +60,7 @@ public class AuthController {
 
         logger.info("Stored password hash for user {}: {}", authenticationRequest.getLogin(), userDetails.getPassword());
 
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+        final String jwt = jwtUtil.generateToken(userDetails);
         logger.info("JWT created for user: {}", authenticationRequest.getLogin());
 
         return ResponseEntity.ok(new AuthenticationResponse(jwt));

@@ -1,5 +1,6 @@
-package com.agan.cloudstorage.model;
+package com.agan.cloudstorage.service;
 
+import com.agan.cloudstorage.model.User;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

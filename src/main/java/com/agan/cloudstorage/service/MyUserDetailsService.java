@@ -1,7 +1,6 @@
 package com.agan.cloudstorage.service;
 
 
-import com.agan.cloudstorage.model.MyUserDetails;
 import com.agan.cloudstorage.model.User;
 import com.agan.cloudstorage.repository.UserRepository;
 import lombok.AllArgsConstructor;

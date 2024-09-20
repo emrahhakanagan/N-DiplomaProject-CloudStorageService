@@ -61,6 +61,9 @@ public class JwtUtil {
     }
 
     public String generateToken(UserDetails userDetails) {
+        logger.info("generateToken method called");
+        System.out.println("generateToken method called");
+
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", getUserRoles(userDetails));
 
@@ -77,9 +80,15 @@ public class JwtUtil {
     }
 
     private List<String> getUserRoles(UserDetails userDetails) {
-        return userDetails.getAuthorities().stream()
+        logger.info("getUserRoles method called");
+
+        List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
+
+        roles.forEach(role -> logger.info("Role: {}, Type: {}", role, role.getClass().getSimpleName()));
+
+        return roles;
     }
 
     public Boolean validateToken(String token, String username) {

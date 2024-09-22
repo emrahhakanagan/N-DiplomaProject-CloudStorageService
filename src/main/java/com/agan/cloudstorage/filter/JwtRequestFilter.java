@@ -27,8 +27,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        // Continuing to resolve of problem with extraction username from token ...
-
         final String authorizationHeader = request.getHeader("Authorization");
 
         String username = null;

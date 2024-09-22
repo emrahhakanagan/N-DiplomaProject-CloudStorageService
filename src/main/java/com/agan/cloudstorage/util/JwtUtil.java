@@ -8,11 +8,9 @@ import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -61,19 +59,22 @@ public class JwtUtil {
     }
 
     public String generateToken(UserDetails userDetails) {
+
         logger.info("generateToken method called");
-        System.out.println("generateToken method called");
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", getUserRoles(userDetails));
 
+        logger.info("JWT subject from token: {}", userDetails.getUsername());
+
         String jwt = Jwts.builder()
-                .setSubject(userDetails.getUsername())
                 .setClaims(claims)
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 часов
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+
         logger.info("JWT created: {}", jwt);  // Logging the created token
 
         return jwt;

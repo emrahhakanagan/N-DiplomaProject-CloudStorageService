@@ -19,8 +19,16 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping("/list")
-    public List<File> listFiles(@RequestParam String userId) {
-        return fileService.listFiles(userId);
+    public ResponseEntity<List<File>> listFiles(
+            @RequestParam(value = "userId", required = true) String userId,
+            @RequestParam(value = "limit", defaultValue = "10", required = false) int limit) {
+
+            System.out.println("Limit: " + limit);
+            System.out.println("UserId: " + userId);
+
+            List<File> files = fileService.listFiles(userId, limit);
+
+            return new ResponseEntity<>(files, HttpStatus.OK);
     }
 
     @PostMapping("/file")

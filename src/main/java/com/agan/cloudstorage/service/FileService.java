@@ -1,8 +1,12 @@
 package com.agan.cloudstorage.service;
 
+import com.agan.cloudstorage.exception.FilesNotFoundException;
 import com.agan.cloudstorage.model.File;
 import com.agan.cloudstorage.repository.FileRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,8 +21,16 @@ public class FileService {
     private FileRepository fileRepository;
 
 
-    public List<File> listFiles(String userId) {
-        return fileRepository.findByUserId(userId);
+    public List<File> listFiles(String userId, int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "uploadedAt"));
+
+        List<File> files = fileRepository.findFilesByUserId(userId, pageable);
+
+        if (files == null || files.isEmpty()) {
+            throw new FilesNotFoundException("Files not found for user with ID: " + userId);
+        }
+
+        return files;
     }
 
     public File uploadFile(MultipartFile file, String userId) throws IOException {

@@ -1,9 +1,11 @@
 package com.agan.cloudstorage.service;
 
 import com.agan.cloudstorage.exception.FilesNotFoundException;
+import com.agan.cloudstorage.exception.GeneralServiceException;
+import com.agan.cloudstorage.exception.InvalidInputException;
 import com.agan.cloudstorage.model.File;
 import com.agan.cloudstorage.repository.FileRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,23 +16,34 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class FileService {
 
+    private int pageNumber = 0;
     private FileRepository fileRepository;
 
 
     public List<File> listFiles(String userId, int limit) {
-        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "uploadedAt"));
+        try {
+            if (limit <= 0) {
+                throw new InvalidInputException("Limit must be greater than 0");
+            }
 
-        List<File> files = fileRepository.findFilesByUserId(userId, pageable);
+            Pageable pageable = PageRequest.of(pageNumber, limit, Sort.by(Sort.Direction.DESC, "uploadedAt"));
 
-        if (files == null || files.isEmpty()) {
-            throw new FilesNotFoundException("Files not found for user with ID: " + userId);
+            List<File> files = fileRepository.findFilesByUserId(userId, pageable);
+
+            if (files == null || files.isEmpty()) {
+                throw new FilesNotFoundException("No files found");
+            }
+
+            return files;
+        } catch (InvalidInputException | FilesNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GeneralServiceException("Error getting file list for user with ID: " + userId, e);
         }
-
-        return files;
     }
 
     public File uploadFile(MultipartFile file, String userId) throws IOException {

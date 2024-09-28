@@ -13,6 +13,8 @@ public interface FileRepository extends MongoRepository<File, String> {
     @Query("{'userId': ?0}")
     List<File> findFilesByUserId(String userId, Pageable pageable);
 
+    Optional<File> findByUserIdAndFilename(String userId, String filename);
+
     Optional<File> findByIdAndUserId(String fileId, String userId);
 
     void deleteByIdAndUserId(String id, String userId);

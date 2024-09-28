@@ -10,15 +10,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class FileService {
+
+    /*
+    * The 401 (Unauthorized) error is handled automatically by JwtRequestFilter,
+    * so we do not need to implement this logic in the editFileName method or the service.
+    * This ensures that our code still meets the specification requirements for authentication.
+    * */
 
     private int pageNumber = 0;
     private FileRepository fileRepository;
@@ -46,15 +50,27 @@ public class FileService {
         }
     }
 
-    public File uploadFile(MultipartFile file, String userId) throws IOException {
-        File dbFile = new File();
-        dbFile.setFilename(file.getOriginalFilename());
-        dbFile.setUserId(userId);
-        dbFile.setSize(file.getSize());
-        dbFile.setContent(file.getBytes());
+    public void editFileName(String userId, String filename, String newFileName) {
+        try {
+            if (newFileName == null || newFileName.trim().isEmpty()) {
+                throw new InvalidInputException("New file name cannot be empty.");
+            }
 
-        return fileRepository.save(dbFile);
+            File file = fileRepository.findByUserIdAndFilename(userId, filename)
+                    .orElseThrow(() -> new FilesNotFoundException(
+                            "File not found for user: " + userId + " with filename: " + filename)
+                    );
+
+            file.setFilename(newFileName);
+            fileRepository.save(file);
+
+        } catch (FilesNotFoundException | InvalidInputException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GeneralServiceException("Error while updating file name", e);
+        }
     }
+
 
     public Optional<File> downloadFile(String fileId, String userId) {
         return fileRepository.findByIdAndUserId(fileId, userId);

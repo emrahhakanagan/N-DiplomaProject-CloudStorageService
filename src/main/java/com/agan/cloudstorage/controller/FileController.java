@@ -49,16 +49,20 @@ public class FileController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-
-
     @GetMapping("/file")
-    public ResponseEntity<byte[]> downloadFile(@RequestParam String fileId, @RequestParam String userId) {
-        return fileService.downloadFile(fileId, userId)
-                .map(file -> ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
-                        .body(file.getContent()))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<byte[]> downloadFile(
+            @RequestHeader(value = "auth-token", required = true) String authToken,
+            @RequestParam("filename") String filename) {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        File file = fileService.downloadFile(username, filename);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                .body(file.getContent());
     }
+
 
     @DeleteMapping("/file")
     public ResponseEntity<Void> deleteFile(@RequestParam String fileId, @RequestParam String userId) {

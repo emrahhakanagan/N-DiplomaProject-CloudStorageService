@@ -72,9 +72,26 @@ public class FileService {
     }
 
 
-    public Optional<File> downloadFile(String fileId, String userId) {
-        return fileRepository.findByIdAndUserId(fileId, userId);
+    public File downloadFile(String userId, String filename) {
+        try {
+            if (filename == null || filename.trim().isEmpty()) {
+                throw new InvalidInputException("Filename cannot be empty.");
+            }
+
+            File file = fileRepository.findByUserIdAndFilename(userId, filename)
+                    .orElseThrow(() -> new FilesNotFoundException(
+                            "File not found for user: " + userId + " with filename: " + filename)
+                    );
+
+            return file;
+
+        } catch (InvalidInputException | FilesNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GeneralServiceException("Error while downloading file", e);
+        }
     }
+
 
     public void deleteFile(String fileId, String userId) {
         fileRepository.deleteByIdAndUserId(fileId, userId);

@@ -15,15 +15,18 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/")
 public class AuthController {
+    /*
+     * Getting the auth-token from the header is required by the specification, but we do not use this variable directly.
+     * The authentication process is automatically handled by Spring Security through JwtRequestFilter.
+     *
+     * authToken The authentication token provided in the request header.
+     */
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthenticationManager authenticationManager;
@@ -36,16 +39,17 @@ public class AuthController {
             throws Exception {
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getLogin());
-
         logger.info("Stored password hash for user {}: {}", authenticationRequest.getLogin(), userDetails.getPassword());
 
         boolean passwordMatches = passwordEncoder.matches(authenticationRequest.getPassword(), userDetails.getPassword());
 
+        // -------------- Log --------------
         if (passwordMatches) {
             logger.info("Password matches for user: {}", authenticationRequest.getLogin());
         } else {
             logger.error("Password does not match for user: {}", authenticationRequest.getLogin());
         }
+        // -------------- Log --------------
 
         try {
             authenticationManager.authenticate(
@@ -67,8 +71,10 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
+    public ResponseEntity<String> logout(@RequestHeader(value = "auth-token", required = true) String authToken) {
+
         return ResponseEntity.ok("Successfully logged out");
     }
+
 
 }

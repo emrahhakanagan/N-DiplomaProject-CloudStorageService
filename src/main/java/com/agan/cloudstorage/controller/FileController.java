@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -82,6 +83,21 @@ public class FileController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         fileService.deleteFile(username, filename);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @PostMapping("/file")
+    public ResponseEntity<Void> uploadFile(
+            @RequestHeader(value = "auth-token", required = true) String authToken,
+            @RequestParam("filename") String filename,
+            @RequestPart("file") MultipartFile file) {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        fileService.uploadFile(username, filename, file);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }

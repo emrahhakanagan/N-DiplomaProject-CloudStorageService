@@ -15,10 +15,21 @@ import java.util.Map;
 @RestController
 @AllArgsConstructor
 public class FileController {
-/*
-* Getting the auth-token from the header is required by the specification, but we do not use this variable directly.
-* The authentication process is automatically handled by Spring Security through JwtRequestFilter.
-*/
+    /*
+     * Getting the auth-token from the header is required by the specification, but we do not use this variable directly.
+     * The authentication process is automatically handled by Spring Security through JwtRequestFilter.
+     *
+     * authToken The authentication token provided in the request header.
+     */
+
+    /*
+     * It's generally better to use fileId for CRUD operations to ensure accuracy and security,
+     * as fileId is a unique identifier. However, the specification strictly requires the use
+     * of filename as a parameter for file operations. Therefore, we are accepting filename in
+     * the parameters to comply with the specification.
+     *
+     * filename The name of the file to be used for the operation, as required by the specification.
+     */
 
     private final FileService fileService;
 
@@ -63,10 +74,14 @@ public class FileController {
                 .body(file.getContent());
     }
 
-
     @DeleteMapping("/file")
-    public ResponseEntity<Void> deleteFile(@RequestParam String fileId, @RequestParam String userId) {
-        fileService.deleteFile(fileId, userId);
+    public ResponseEntity<Void> deleteFile(
+            @RequestHeader(value = "auth-token", required = true) String authToken,
+            @RequestParam("filename") String filename) {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        fileService.deleteFile(username, filename);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

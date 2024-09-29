@@ -28,6 +28,26 @@ public class FileService {
     private int pageNumber = 0;
     private FileRepository fileRepository;
 
+    public void uploadFile(String userId, String filename, MultipartFile file) {
+        try {
+            if (filename == null || filename.trim().isEmpty()) {
+                throw new InvalidInputException("Filename cannot be empty.");
+            }
+
+            if (file == null || file.isEmpty()) {
+                throw new InvalidInputException("File cannot be empty.");
+            }
+
+            File dbFile = createFileObject(userId, filename, file);
+
+            fileRepository.save(dbFile);
+
+        } catch (InvalidInputException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GeneralServiceException("Error while uploading file", e);
+        }
+    }
 
     public List<File> listFiles(String userId, int limit) {
         try {
@@ -48,6 +68,26 @@ public class FileService {
             throw e;
         } catch (Exception e) {
             throw new GeneralServiceException("Error getting file list for user with ID: " + userId, e);
+        }
+    }
+
+    public File downloadFile(String userId, String filename) {
+        try {
+            if (filename == null || filename.trim().isEmpty()) {
+                throw new InvalidInputException("Filename cannot be empty.");
+            }
+
+            File file = fileRepository.findByUserIdAndFilename(userId, filename)
+                    .orElseThrow(() -> new FilesNotFoundException(
+                            "File not found for user: " + userId + " with filename: " + filename)
+                    );
+
+            return file;
+
+        } catch (InvalidInputException | FilesNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GeneralServiceException("Error while downloading file", e);
         }
     }
 
@@ -72,26 +112,6 @@ public class FileService {
         }
     }
 
-    public File downloadFile(String userId, String filename) {
-        try {
-            if (filename == null || filename.trim().isEmpty()) {
-                throw new InvalidInputException("Filename cannot be empty.");
-            }
-
-            File file = fileRepository.findByUserIdAndFilename(userId, filename)
-                    .orElseThrow(() -> new FilesNotFoundException(
-                            "File not found for user: " + userId + " with filename: " + filename)
-                    );
-
-            return file;
-
-        } catch (InvalidInputException | FilesNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new GeneralServiceException("Error while downloading file", e);
-        }
-    }
-
     public void deleteFile(String userId, String filename) {
         try {
             if (filename == null || filename.trim().isEmpty()) {
@@ -109,27 +129,6 @@ public class FileService {
             throw e;
         } catch (Exception e) {
             throw new GeneralServiceException("Error while deleting file", e);
-        }
-    }
-
-    public void uploadFile(String userId, String filename, MultipartFile file) {
-        try {
-            if (filename == null || filename.trim().isEmpty()) {
-                throw new InvalidInputException("Filename cannot be empty.");
-            }
-
-            if (file == null || file.isEmpty()) {
-                throw new InvalidInputException("File cannot be empty.");
-            }
-
-            File dbFile = createFileObject(userId, filename, file);
-
-            fileRepository.save(dbFile);
-
-        } catch (InvalidInputException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new GeneralServiceException("Error while uploading file", e);
         }
     }
 

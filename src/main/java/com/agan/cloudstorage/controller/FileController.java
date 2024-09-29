@@ -34,6 +34,19 @@ public class FileController {
 
     private final FileService fileService;
 
+    @PostMapping("/file")
+    public ResponseEntity<Void> uploadFile(
+            @RequestHeader(value = "auth-token", required = true) String authToken,
+            @RequestParam("filename") String filename,
+            @RequestPart("file") MultipartFile file) {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        fileService.uploadFile(username, filename, file);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @GetMapping("/list")
     public ResponseEntity<List<File>> listFiles(
             @RequestHeader(value = "auth-token", required = true) String authToken,
@@ -44,6 +57,20 @@ public class FileController {
         List<File> files = fileService.listFiles(username, limit);
 
         return new ResponseEntity<>(files, HttpStatus.OK);
+    }
+
+    @GetMapping("/file")
+    public ResponseEntity<byte[]> downloadFile(
+            @RequestHeader(value = "auth-token", required = true) String authToken,
+            @RequestParam("filename") String filename) {
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        File file = fileService.downloadFile(username, filename);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                .body(file.getContent());
     }
 
     @PutMapping("/file")
@@ -61,20 +88,6 @@ public class FileController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/file")
-    public ResponseEntity<byte[]> downloadFile(
-            @RequestHeader(value = "auth-token", required = true) String authToken,
-            @RequestParam("filename") String filename) {
-
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        File file = fileService.downloadFile(username, filename);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
-                .body(file.getContent());
-    }
-
     @DeleteMapping("/file")
     public ResponseEntity<Void> deleteFile(
             @RequestHeader(value = "auth-token", required = true) String authToken,
@@ -86,18 +99,4 @@ public class FileController {
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-    @PostMapping("/file")
-    public ResponseEntity<Void> uploadFile(
-            @RequestHeader(value = "auth-token", required = true) String authToken,
-            @RequestParam("filename") String filename,
-            @RequestPart("file") MultipartFile file) {
-
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        fileService.uploadFile(username, filename, file);
-
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
 }

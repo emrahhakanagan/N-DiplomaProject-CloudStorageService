@@ -12,17 +12,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class FileService {
 
     /*
-    * The 401 (Unauthorized) error is handled automatically by JwtRequestFilter,
-    * so we do not need to implement this logic in the editFileName method or the service.
-    * This ensures that our code still meets the specification requirements for authentication.
-    * */
+     * The 401 (Unauthorized) error is handled automatically by JwtRequestFilter,
+     * so we do not need to implement this logic in the editFileName method or the service.
+     * This ensures that our code still meets the specification requirements for authentication.
+     * */
 
     private int pageNumber = 0;
     private FileRepository fileRepository;
@@ -71,7 +70,6 @@ public class FileService {
         }
     }
 
-
     public File downloadFile(String userId, String filename) {
         try {
             if (filename == null || filename.trim().isEmpty()) {
@@ -92,9 +90,23 @@ public class FileService {
         }
     }
 
+    public void deleteFile(String userId, String filename) {
+        try {
+            if (filename == null || filename.trim().isEmpty()) {
+                throw new InvalidInputException("Filename cannot be empty.");
+            }
 
-    public void deleteFile(String fileId, String userId) {
-        fileRepository.deleteByIdAndUserId(fileId, userId);
+            File file = fileRepository.findByUserIdAndFilename(userId, filename)
+                    .orElseThrow(() -> new FilesNotFoundException(
+                            "File not found for user: " + userId + " with filename: " + filename)
+                    );
+
+            fileRepository.delete(file);
+
+        } catch (InvalidInputException | FilesNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GeneralServiceException("Error while deleting file", e);
+        }
     }
-
 }

@@ -26,7 +26,7 @@ public class FileService {
      */
 
     private int pageNumber = 0;
-    private FileRepository fileRepository;
+    private final FileRepository fileRepository;
 
     public void uploadFile(String userId, String filename, MultipartFile file) {
         try {

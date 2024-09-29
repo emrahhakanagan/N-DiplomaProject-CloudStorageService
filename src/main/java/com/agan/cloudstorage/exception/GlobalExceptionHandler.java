@@ -2,6 +2,7 @@ package com.agan.cloudstorage.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -11,6 +12,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidInputException.class)
     public ResponseEntity<ErrorResponse> handleInvalidInputException(InvalidInputException ex) {
         ErrorResponse errorResponse = new ErrorResponse("Invalid input data", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("User not found", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

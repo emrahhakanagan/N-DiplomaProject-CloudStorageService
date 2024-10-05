@@ -2,7 +2,6 @@ package com.agan.cloudstorage.controller;
 
 import com.agan.cloudstorage.model.User;
 import com.agan.cloudstorage.service.UserService;
-import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -14,11 +13,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@AllArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Autowired)) // Используем конструктор для внедрения зависимостей
 @Testcontainers
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -27,13 +28,13 @@ public class UserControllerIntegrationTest {
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest")
             .withExposedPorts(27017);
 
-    private UserService userService;
-    private UserController userController;
+    private final UserService userService;
+    private final UserController userController;
 
     @BeforeAll
     static void setUp() {
         mongoDBContainer.start();
-        System.setProperty("spring.data.mongodb.uri", mongoDBContainer.getReplicaSetUrl());
+        System.setProperty("spring.data.mongodb.uri", "mongodb://localhost:27017/cloud_storage");
     }
 
     @AfterAll

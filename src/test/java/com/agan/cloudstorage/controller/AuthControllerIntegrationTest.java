@@ -4,10 +4,12 @@ import com.agan.cloudstorage.model.AuthenticationRequest;
 import com.agan.cloudstorage.model.AuthenticationResponse;
 import com.agan.cloudstorage.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,25 +17,29 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RequiredArgsConstructor
-@Testcontainers
+@RequiredArgsConstructor(onConstructor = @__(@Autowired)) // Используем конструктор для внедрения зависимостей
 @SpringBootTest
+@Testcontainers
 @ExtendWith(SpringExtension.class)
 public class AuthControllerIntegrationTest {
 
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest")
             .withExposedPorts(27017);
 
-    private AuthController authController;
-    private AuthenticationService authenticationService;
+    private final AuthController authController;
+    private final AuthenticationService authenticationService;
 
     @BeforeAll
     static void setUp() {
         mongoDBContainer.start();
-        System.setProperty("spring.data.mongodb.uri", mongoDBContainer.getReplicaSetUrl());
+        System.setProperty("spring.data.mongodb.uri", "mongodb://localhost:27017/cloud_storage");
+    }
+
+    @AfterAll
+    static void tearDown() {
+        mongoDBContainer.stop();
     }
 
     @Test
@@ -43,15 +49,20 @@ public class AuthControllerIntegrationTest {
         request.setLogin("testuser");
         request.setPassword("password123");
 
-        when(authenticationService.authenticate(request.getLogin(), request.getPassword()))
-                .thenReturn("mocked-jwt-token");
-
         ResponseEntity<?> response = authController.createAuthenticationToken(request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("mocked-jwt-token", ((AuthenticationResponse) response.getBody()).getJwt());
-        assertEquals("mocked-jwt-token", response.getHeaders().getFirst("auth-token"));
+        assertNotNull(response.getBody());
+
+        String jwtToken = ((AuthenticationResponse) response.getBody()).getJwt();
+        assertNotNull(jwtToken);
+
+        assertFalse(jwtToken.isEmpty());
+
+        assertEquals(jwtToken, response.getHeaders().getFirst("auth-token"));
     }
+
+
 
     @Test
     @DisplayName("Should successfully log out user")

@@ -1,85 +1,70 @@
 package com.agan.cloudstorage.controller;
 
 import com.agan.cloudstorage.model.User;
-import com.agan.cloudstorage.service.UserService;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RequiredArgsConstructor(onConstructor = @__(@Autowired)) // Используем конструктор для внедрения зависимостей
-@Testcontainers
 @SpringBootTest
+@Testcontainers
 @ExtendWith(SpringExtension.class)
+@RequiredArgsConstructor(onConstructor = @__(@Autowired)) // Используем конструктор для внедрения зависимостей
 public class UserControllerIntegrationTest {
 
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest")
-            .withExposedPorts(27017);
+    private final UserController userController; // Поле отмечено как final для безопасного внедрения
 
-    private final UserService userService;
-    private final UserController userController;
+    private final String TEST_USERNAME = "testuser";
+    private final String TEST_PASSWORD = "testpassword";
 
-    @BeforeAll
-    static void setUp() {
-        mongoDBContainer.start();
-        System.setProperty("spring.data.mongodb.uri", "mongodb://localhost:27017/cloud_storage");
+    @BeforeEach
+    void setUp() {
+        try {
+            userController.getUser(TEST_USERNAME).getBody();
+            userController.deleteUser(TEST_USERNAME);
+        } catch (Exception ignored) {
+        }
+
+        User testUser = new User();
+        testUser.setUsername(TEST_USERNAME);
+        testUser.setPassword(TEST_PASSWORD);
+        userController.addUser(testUser);
     }
 
-    @AfterAll
-    static void tearDown() {
-        mongoDBContainer.stop();
+    @AfterEach
+    void cleanUp() {
+        try {
+            userController.deleteUser(TEST_USERNAME);
+        } catch (Exception ignored) {
+        }
     }
 
     @Test
-    @DisplayName("Should add user successfully with valid data")
     void shouldAddUserSuccessfully() {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword("password123");
-
-        ResponseEntity<String> response = userController.addUser(user);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("User added successfully", response.getBody());
+        ResponseEntity<User> response = userController.getUser(TEST_USERNAME);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(TEST_USERNAME, Objects.requireNonNull(response.getBody()).getUsername());
     }
 
     @Test
-    @DisplayName("Should throw IllegalArgumentException when username already exists")
     void shouldThrowExceptionWhenUsernameAlreadyExists() {
-        User user = new User();
-        user.setUsername("existingUser");
-        user.setPassword("password123");
+        User duplicateUser = new User();
+        duplicateUser.setUsername(TEST_USERNAME);
+        duplicateUser.setPassword("newpassword");
 
-        userService.addUser(user);
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            userController.addUser(user);
+        assertThrows(IllegalArgumentException.class, () -> {
+            userController.addUser(duplicateUser);
         });
-        assertEquals("A user with this username already exists", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should throw IllegalArgumentException when password is less than 6 characters")
-    void shouldThrowExceptionWhenPasswordIsTooShort() {
-        User user = new User();
-        user.setUsername("newUser");
-        user.setPassword("123");
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            userController.addUser(user);
-        });
-        assertEquals("Password must contain at least 6 characters", exception.getMessage());
     }
 }

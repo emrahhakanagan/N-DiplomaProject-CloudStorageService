@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: cloud_storage
+
+  app:
+    build: .
+    container_name: cloud-storage-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/cloud_storage
+    depends_on:
+      - mongodb
